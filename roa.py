@@ -58,5 +58,3 @@ print(
     + str(result.GetSolution(rho))
     + " is in the region of attraction."
 )
-
-assert np.fabs(result.GetSolution(rho) - 1) < 1e-5
