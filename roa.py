@@ -4,7 +4,7 @@ from pydrake.all import (
     MathematicalProgram,
     Solve,
     Variables,
-    LinearQuadraticRegulator
+    LinearQuadraticRegulator,
 )
 
 g = 9.81
@@ -16,14 +16,8 @@ b = 0.1
 x0 = [0, -1, 0]
 u0 = [0]
 
-A = np.array([
-    [0, 1],
-    [g * m * l / (m * l **2), -b / (m * l **2)]
-])
-B = np.array([
-    [0],
-    [1 / (m * l **2)]
-])
+A = np.array([[0, 1], [g * m * l / (m * l**2), -b / (m * l**2)]])
+B = np.array([[0], [1 / (m * l**2)]])
 
 Q = np.diag((10, 1))
 R = [1e-2]
@@ -38,11 +32,7 @@ rho = prog.NewContinuousVariables(1, "rho")[0]
 dx = [x[0] * x0[1] - x[1] * x0[0], x[2] - x0[2]]
 u = u0 + K.dot(dx)
 
-f = [
-    x[1] * x[2],
-    -x[0] * x[2],
-    (-g * m * l * x[0] - b * x[2] + u[0])
-]
+f = [x[1] * x[2], -x[0] * x[2], (-g * m * l * x[0] - b * x[2] + u[0])]
 
 # Define the Lyapunov function.
 V = (S.dot(dx)).dot(dx)
@@ -52,7 +42,9 @@ Vdot = Jacobian([V], x).dot(f)[0]
 lambda_ = prog.NewFreePolynomial(Variables(x), 3).ToExpression()
 mu_ = prog.NewFreePolynomial(Variables(x), 3).ToExpression()
 
-prog.AddSosConstraint((V - rho) * x.dot(x) + mu_ * (x[0]**2 + x[1]**2) - lambda_ * Vdot)
+prog.AddSosConstraint(
+    (V - rho) * (x - x0).dot(x - x0) + mu_ * (x[0] ** 2 + x[1] ** 2) - lambda_ * Vdot
+)
 prog.AddLinearCost(-rho)
 
 result = Solve(prog)
